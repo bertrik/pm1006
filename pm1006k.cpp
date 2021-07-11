@@ -27,8 +27,8 @@ bool PM1006K::read(pm1006k_measurement_t * measurement)
     // send the command
     int len = 0;
     cmd[len++] = 0x11;
-    cmd[len++] = 0x01;
-    cmd[len++] = 0x02;
+    cmd[len++] = 0x01;          // command code length?
+    cmd[len++] = 0x02;          // command code?
     cmd[len++] = 0xEC;          // checksum?
     _serial->write(cmd, len);
 
@@ -37,10 +37,14 @@ bool PM1006K::read(pm1006k_measurement_t * measurement)
     while ((millis() - start) < DEFAULT_TIMEOUT) {
         while (_serial->available()) {
             char c = _serial->read();
-            if (process_rx(c)) {
+            if (process_rx(c) && (length > 12)) {
                 // got frame, decode it
+                // rxbuf[0] probably echoes the command code from the command frame (2)
+                // rxbuf[1], rxbuf[2] has yet unknown content
                 measurement->pm2_5 = (_rxbuf[3] << 8) + _rxbuf[4];
+                // rxbuf[5], rxbuf[6] has yet unknown content
                 measurement->pm1_0 = (_rxbuf[7] << 8) + _rxbuf[8];
+                // rxbuf[9], rxbuf[10] has yet unknown content
                 measurement->pm10 = (_rxbuf[11] << 8) + _rxbuf[12];
                 return true;
             }
@@ -82,7 +86,8 @@ bool PM1006K::process_rx(uint8_t c)
         break;
 
     case PM1006K_CHECK:
-        // not completely sure yet about checksum calculation, skip it for now
+        _checksum += c;
+        // checksum is probably 0 now, not completely sure yet about checksum verification, skip it for now
         _state = PM1006K_HEADER;
         return true;
 
