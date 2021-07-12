@@ -37,7 +37,7 @@ bool PM1006K::read(pm1006k_measurement_t * measurement)
     while ((millis() - start) < DEFAULT_TIMEOUT) {
         while (_serial->available()) {
             char c = _serial->read();
-            if (process_rx(c) && (length > 12)) {
+            if (process_rx(c) && (_length > 12)) {
                 // got frame, decode it
                 // rxbuf[0] probably echoes the command code from the command frame (2)
                 // rxbuf[1], rxbuf[2] has yet unknown content
