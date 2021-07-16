@@ -89,7 +89,7 @@ bool PM1006K::process_rx(uint8_t c)
         _checksum += c;
         // checksum is probably 0 now, not completely sure yet about checksum verification, skip it for now
         _state = PM1006K_HEADER;
-        return true;
+        return (c == 0);
 
     default:
         _state = PM1006K_HEADER;
