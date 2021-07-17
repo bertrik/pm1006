@@ -23,11 +23,14 @@ private:
     bool _debug;
 
     pm1006k_state_t _state;
-    size_t _length;
+    size_t _rxlen;
     size_t _index;
+    uint8_t _txbuf[16];
     uint8_t _rxbuf[16];
     uint8_t _checksum;
     
+    bool send_command(size_t cmd_len, const uint8_t *cmd_data);
+    int build_tx(size_t cmd_len, const uint8_t *cmd_data);
     bool process_rx(uint8_t c);
 
 public:
@@ -41,12 +44,12 @@ public:
     explicit PM1006K(Stream *serial, bool debug = false);
     
     /**
-     * Attempts to retrieve a measurement.
+     * Attempts to retrieve a PM measurement.
      * 
      * @param the measurement.
      * @return true if a measurement was taken
      */
-    bool read(pm1006k_measurement_t * measurement);
+    bool read_pm(pm1006k_measurement_t * measurement);
 
 };
 

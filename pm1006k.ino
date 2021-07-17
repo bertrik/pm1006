@@ -30,7 +30,7 @@ void loop(void)
 
         printf("Attempting measurement:\n");
         pm1006k_measurement_t measurement;
-        if (pm1006k.read(&measurement)) {
+        if (pm1006k.read_pm(&measurement)) {
             printf("PM1.0 = %d\n", measurement.pm1_0);
             printf("PM2.5 = %d\n", measurement.pm2_5);
             printf("PM10  = %d\n", measurement.pm10);
