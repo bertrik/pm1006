@@ -51,5 +51,13 @@ public:
      */
     bool read_pm(pm1006k_measurement_t * measurement);
 
+    /**
+     * Reads the PM2.5 value (plus some other yet unknown parameters)
+     *
+     * @param pm the PM2.5 value
+     * @return true if the value was read successfully
+     */
+    bool read_pm_25(uint16_t *pm);
+
 };
 
