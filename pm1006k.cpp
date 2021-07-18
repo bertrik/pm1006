@@ -17,6 +17,7 @@ PM1006K::PM1006K(Stream * serial, bool debug)
     _rxlen = 0;
     _index = 0;
     memset(_rxbuf, 0, sizeof(_rxbuf));
+    memset(_txbuf, 0, sizeof(_txbuf));
     _checksum = 0;
 }
 
