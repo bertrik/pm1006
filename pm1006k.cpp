@@ -55,7 +55,7 @@ bool PM1006K::send_command(size_t cmd_len, const uint8_t *cmd_data)
     }
 
     // timeout
-    return -1;
+    return false;
 }
 
 // builds a tx buffer, returns length of tx data
