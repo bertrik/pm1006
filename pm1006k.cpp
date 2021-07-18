@@ -38,8 +38,8 @@ bool PM1006K::read_pm(pm1006k_measurement_t * measurement)
 bool PM1006K::read_pm_25(uint16_t *pm)
 {
     uint8_t cmd[] = {0x0B, 0x01};
-    if (send_command(2, cmd) && (_rxlen > 4) && (_rxbuf[0] == cmd)) {
-        *pm = (_rxbuf[3] << 8) _rxbuf[4];
+    if (send_command(2, cmd) && (_rxlen > 4) && (_rxbuf[0] == cmd[0])) {
+        *pm = (_rxbuf[3] << 8) + _rxbuf[4];
         return true;
     }
     return false;
