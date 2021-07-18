@@ -26,7 +26,7 @@ private:
     size_t _rxlen;
     size_t _index;
     uint8_t _txbuf[16];
-    uint8_t _rxbuf[16];
+    uint8_t _rxbuf[20];
     uint8_t _checksum;
     
     bool send_command(size_t cmd_len, const uint8_t *cmd_data);

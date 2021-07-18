@@ -99,7 +99,7 @@ bool PM1006K::process_rx(uint8_t c)
 
     case PM1006K_LENGTH:
         _checksum += c;
-        if (c < sizeof(_rxbuf)) {
+        if (c <= sizeof(_rxbuf)) {
             _rxlen = c;
             _index = 0;
             _state = (_rxlen > 0) ? PM1006K_DATA : PM1006K_CHECK;
