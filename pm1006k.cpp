@@ -119,7 +119,7 @@ bool PM1006K::process_rx(uint8_t c)
     case PM1006K_CHECK:
         _checksum += c;
         _state = PM1006K_HEADER;
-        return (c == 0);
+        return (_checksum == 0);
 
     default:
         _state = PM1006K_HEADER;
