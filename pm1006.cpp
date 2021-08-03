@@ -4,16 +4,16 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "pm1006k.h"
+#include "pm1006.h"
 
 #define DEFAULT_TIMEOUT 1000
 
-PM1006K::PM1006K(Stream * serial, bool debug)
+PM1006::PM1006(Stream * serial, bool debug)
 {
     _serial = serial;
     _debug = debug;
 
-    _state = PM1006K_HEADER;
+    _state = PM1006_HEADER;
     _rxlen = 0;
     _index = 0;
     memset(_rxbuf, 0, sizeof(_rxbuf));
@@ -21,22 +21,7 @@ PM1006K::PM1006K(Stream * serial, bool debug)
     _checksum = 0;
 }
 
-bool PM1006K::read_pm(pm1006k_measurement_t * measurement)
-{
-    uint8_t cmd = 0x02;
-    if (send_command(1, &cmd) && (_rxlen > 12) && (_rxbuf[0] == cmd)) {
-        // rxbuf[1], rxbuf[2] has yet unknown content
-        measurement->pm2_5 = (_rxbuf[3] << 8) + _rxbuf[4];
-        // rxbuf[5], rxbuf[6] has yet unknown content
-        measurement->pm1_0 = (_rxbuf[7] << 8) + _rxbuf[8];
-        // rxbuf[9], rxbuf[10] has yet unknown content
-        measurement->pm10 = (_rxbuf[11] << 8) + _rxbuf[12];
-        return true;
-    }
-    return false;
-}
-
-bool PM1006K::read_pm_25(uint16_t *pm)
+bool PM1006::read_pm25(uint16_t *pm)
 {
     uint8_t cmd[] = {0x0B, 0x01};
     if (send_command(2, cmd) && (_rxlen > 4) && (_rxbuf[0] == cmd[0])) {
@@ -47,7 +32,7 @@ bool PM1006K::read_pm_25(uint16_t *pm)
 }
 
 // sends a command and waits for response, returns length of response
-bool PM1006K::send_command(size_t cmd_len, const uint8_t *cmd_data)
+bool PM1006::send_command(size_t cmd_len, const uint8_t *cmd_data)
 {
     // build and send command
     int txlen = build_tx(cmd_len, cmd_data);
@@ -70,7 +55,7 @@ bool PM1006K::send_command(size_t cmd_len, const uint8_t *cmd_data)
 }
 
 // builds a tx buffer, returns length of tx data
-int PM1006K::build_tx(size_t cmd_len, const uint8_t *cmd_data)
+int PM1006::build_tx(size_t cmd_len, const uint8_t *cmd_data)
 {
     int len = 0;
     _txbuf[len++] = 0x11;
@@ -87,42 +72,42 @@ int PM1006K::build_tx(size_t cmd_len, const uint8_t *cmd_data)
 }
 
 // processes one rx character, returns true if a valid frame was found
-bool PM1006K::process_rx(uint8_t c)
+bool PM1006::process_rx(uint8_t c)
 {
     switch (_state) {
-    case PM1006K_HEADER:
+    case PM1006_HEADER:
         _checksum = c;
         if (c == 0x16) {
-            _state = PM1006K_LENGTH;
+            _state = PM1006_LENGTH;
         }
         break;
 
-    case PM1006K_LENGTH:
+    case PM1006_LENGTH:
         _checksum += c;
         if (c <= sizeof(_rxbuf)) {
             _rxlen = c;
             _index = 0;
-            _state = (_rxlen > 0) ? PM1006K_DATA : PM1006K_CHECK;
+            _state = (_rxlen > 0) ? PM1006_DATA : PM1006_CHECK;
         } else {
-            _state = PM1006K_HEADER;
+            _state = PM1006_HEADER;
         }
         break;
 
-    case PM1006K_DATA:
+    case PM1006_DATA:
         _checksum += c;
         _rxbuf[_index++] = c;
         if (_index == _rxlen) {
-            _state = PM1006K_CHECK;
+            _state = PM1006_CHECK;
         }
         break;
 
-    case PM1006K_CHECK:
+    case PM1006_CHECK:
         _checksum += c;
-        _state = PM1006K_HEADER;
+        _state = PM1006_HEADER;
         return (_checksum == 0);
 
     default:
-        _state = PM1006K_HEADER;
+        _state = PM1006_HEADER;
         break;
     }
     return false;
