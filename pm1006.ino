@@ -11,7 +11,7 @@
 #define PIN_LDR        A0
 #define PIN_FAN        D0
 #define PIN_LED_G      D5
-#define PIN_LED_RO     D3
+#define PIN_LED_R      D3
 
 #define printf Serial.printf
 
@@ -62,24 +62,11 @@ static int do_ledr(int argc, char *argv[])
     if (argc < 2) {
         return -1;
     }
-    int v = atoi(argv[1]);
-    printf("Turning red/orange LED %d\n", v);
-    switch (v) {
-    case 0:
-        pinMode(PIN_LED_RO, OUTPUT);
-        digitalWrite(PIN_LED_RO, 0);
-        break;
-    case 1:
-        pinMode(PIN_LED_RO, OUTPUT);
-        digitalWrite(PIN_LED_RO, 1);
-        break;
-    default:
-        pinMode(PIN_LED_RO, INPUT);
-        break;
-    }
+    bool on = (atoi(argv[1]) != 0);
+    printf("Turning red LED %s\n", on ? "on" : "off");
+    digitalWrite(PIN_LED_R, !on);
     return 0;
 }
-
 
 const cmd_t commands[] = {
     { "help", do_help, "Show help" },
@@ -106,6 +93,8 @@ void setup(void)
 
     pinMode(PIN_LED_G, OUTPUT);
     digitalWrite(PIN_LED_G, 1);
+    pinMode(PIN_LED_R, OUTPUT);
+    digitalWrite(PIN_LED_R, 1);
 
     EditInit(editline, sizeof(editline));
 
