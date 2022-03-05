@@ -80,6 +80,45 @@ static int do_measure(int argc, char *argv[])
     return 0;
 }
 
+static void printhex(const char *header, size_t len, const uint8_t *data)
+{
+    printf("%s", header);
+    for (size_t i = 0; i < len; i++) {
+        printf(" %02X", data[i]);
+    }
+    printf("\n");
+}
+
+static int do_command(int argc, char *argv[])
+{
+    uint8_t cmd_data[32];
+    uint8_t rsp_data[32];
+
+    if (argc < 2) {
+        return -1;
+    }
+
+    // convert command buffer
+    char *str = argv[1];
+    char buf[3];
+    size_t cmd_len = 0;
+    for (size_t i = 0; i < strlen(str); i += 2) {
+        strlcpy(buf, str + i, 3);
+        cmd_data[cmd_len++] = strtoul(buf, NULL, 16);
+    }
+
+    // perform command/response exchange
+    printhex("CMD:", cmd_len, cmd_data);
+    if (pm1006.send_command(cmd_len, cmd_data)) {
+        size_t rsp_len = pm1006.get_response(rsp_data);
+        printhex("RSP:", rsp_len, rsp_data);
+        return 0;
+    } else {
+        printf("FAIL!\n");
+        return -1;
+    }
+}
+
 const cmd_t commands[] = {
     { "help", do_help, "Show help" },
     { "fan", do_fan, "<0|1> Turn fan on or off" },
@@ -87,6 +126,7 @@ const cmd_t commands[] = {
     { "g", do_ledg, "<0|1> Control green LED" },
     { "r", do_ledr, "<0|1> Control red/orange LED" },
     { "m", do_measure, "Perform a PM2.5 measurement" },
+    { "c", do_command, "<hex> Send a custom command" },
     { NULL, NULL, NULL }
 };
 

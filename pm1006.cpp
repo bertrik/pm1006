@@ -31,7 +31,7 @@ bool PM1006::read_pm25(uint16_t *pm)
     return false;
 }
 
-// sends a command and waits for response, returns length of response
+// sends a command and waits for response, returns true if a response was received
 bool PM1006::send_command(size_t cmd_len, const uint8_t *cmd_data)
 {
     // build and send command
@@ -52,6 +52,13 @@ bool PM1006::send_command(size_t cmd_len, const uint8_t *cmd_data)
 
     // timeout
     return false;
+}
+
+// retrieves the response after a successful send_command, returns length of response
+size_t PM1006::get_response(uint8_t *rsp_data)
+{
+    memcpy(rsp_data, _rxbuf, _rxlen);
+    return _rxlen;
 }
 
 // builds a tx buffer, returns length of tx data

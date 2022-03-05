@@ -23,7 +23,6 @@ private:
     uint8_t _rxbuf[20];
     uint8_t _checksum;
     
-    bool send_command(size_t cmd_len, const uint8_t *cmd_data);
     int build_tx(size_t cmd_len, const uint8_t *cmd_data);
     bool process_rx(uint8_t c);
 
@@ -44,6 +43,10 @@ public:
      * @return true if the value was read successfully
      */
     bool read_pm25(uint16_t *pm);
+
+    // experimentation
+    bool send_command(size_t cmd_len, const uint8_t *cmd_data);
+    size_t get_response(uint8_t *rsp_data);
 
 };
 
