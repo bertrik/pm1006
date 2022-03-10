@@ -18,6 +18,7 @@
 static SoftwareSerial pmSerial(PIN_PM1006_RX, PIN_PM1006_TX);
 static PM1006 pm1006(&pmSerial);
 static char editline[80];
+static bool auto_mode = true;
 
 static void show_help(const cmd_t * cmds)
 {
@@ -119,7 +120,14 @@ static int do_command(int argc, char *argv[])
     }
 }
 
-const cmd_t commands[] = {
+static int do_auto(int argc, char *argv[])
+{
+    auto_mode = !auto_mode;
+    printf("Auto-mode is now %s\n", auto_mode ? "on" : "off");
+    return 0;
+}
+
+static const cmd_t commands[] = {
     { "help", do_help, "Show help" },
     { "fan", do_fan, "<0|1> Turn fan on or off" },
     { "ldr", do_ldr, "Read LDR" },
@@ -127,6 +135,7 @@ const cmd_t commands[] = {
     { "r", do_ledr, "<0|1> Control red/orange LED" },
     { "m", do_measure, "Perform a PM2.5 measurement" },
     { "c", do_command, "<hex> Send a custom command" },
+    { "a", do_auto, "toggle auto-mode on/off" },
     { NULL, NULL, NULL }
 };
 
@@ -142,7 +151,7 @@ void setup(void)
     printf("Hello this is PM600!\n");
 
     pinMode(PIN_FAN, OUTPUT);
-    digitalWrite(PIN_FAN, 0);
+    digitalWrite(PIN_FAN, 1);
 
     pinMode(PIN_LED_G, OUTPUT);
     digitalWrite(PIN_LED_G, 1);
@@ -154,8 +163,45 @@ void setup(void)
     pmSerial.begin(PM1006::BIT_RATE);
 }
 
+static void handle_auto_mode(unsigned long ms)
+{
+    // read PM2.5 every few seconds
+    static int last_tick = 0;
+    static uint16_t pm2_5 = 0;
+    int tick = ms / 2500;
+    if (tick != last_tick) {
+        last_tick = tick;
+        if (pm1006.read_pm25(&pm2_5)) {
+            printf("PM2.5=%u ug/m3\n", pm2_5);
+        }
+    }
+
+    // update LED
+    uint8_t r, g;
+    if (pm2_5 < 20) {
+        r = 0;
+        g = 255;
+    } else if (pm2_5 < 50) {
+        r = map(pm2_5, 20, 50, 0, 255);
+        g = map(pm2_5, 20, 50, 255, 0);
+    } else if (pm2_5 < 90) {
+        r = 255;
+        g = 0;
+    } else {
+        r = (ms / 500) % 2 ? 255 : 0;
+        g = 0;
+    }
+    analogWrite(PIN_LED_R, 255 - r);
+    analogWrite(PIN_LED_G, 255 - g);
+}
+
 void loop(void)
 {
+    // in "auto" mode, continuously show PM value as colour
+    if (auto_mode) {
+        handle_auto_mode(millis());
+    }
+
     // parse command line
     bool haveLine = false;
     if (Serial.available()) {
